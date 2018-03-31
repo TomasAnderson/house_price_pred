@@ -9,12 +9,12 @@ def mean_absolute_percentage_error(y_true, y_pred):
     return np.mean(np.abs((y_true - y_pred) / y_true)) * 100
 
 
-def encode_category(col, one_hot=True):
+def encode_category(col, n, one_hot=True):
     le = LabelEncoder()
     enc_col = le.fit_transform(col)
     enc_col.reshape(len(col), 1)
     if one_hot:
-        enc = OneHotEncoder(sparse=False)
+        enc = OneHotEncoder(sparse=False, n_values=n)
         enc_col = np.array(enc_col).reshape(-1, 1)
         enc_col = enc.fit_transform(enc_col)
 
@@ -51,7 +51,7 @@ def encode_binary(col, w):
             binary_col[i] = 0
     return binary_col.reshape((N,1))
 
-def encode_completion_date(col):
+def encode_completion_date(col, n):
     categories = ['Uncompleted','Uncomplete','Unknown']
     N = len(col)
     date_col = np.zeros(N)
@@ -61,25 +61,25 @@ def encode_completion_date(col):
             date_col[i] = 3
         else:
             date_col[i] = categories.index(c)
-    enc = OneHotEncoder(sparse=False)
+    enc = OneHotEncoder(sparse=False, n_values=n)
     enc_col = np.array(date_col).reshape(-1, 1)
     enc_col = enc.fit_transform(enc_col)
     print("shape: ", enc_col.shape)
     return enc_col
 
 
-def load_data():
-    df = pd.read_csv("./data/private_train.csv")
+def load_data(f, has_y=True):
+    df = pd.read_csv(f)
 
     # categorical feature
-    land_type_col = encode_category(df['type_of_land'])
-    property_col = encode_category(df['property_type'])
-    completion_date_col = encode_completion_date(df['completion_date'])
-    sale_type_col = encode_category(df['type_of_sale'])
+    land_type_col = encode_category(df['type_of_land'], n=3)
+    property_col = encode_category(df['property_type'], n=6)
+    completion_date_col = encode_completion_date(df['completion_date'], n=4)
+    sale_type_col = encode_category(df['type_of_sale'], n=3)
     tenure_col = encode_binary(df['tenure'], w='Freehold')     # is tenure
-    postal_district_col = encode_category(df['postal_district'])
-    region_col = encode_category(df['region'])
-    area_col = encode_category(df['area'])
+    postal_district_col = encode_category(df['postal_district'], n=27)
+    region_col = encode_category(df['region'], n=5)
+    area_col = encode_category(df['area'], n=40)
 
     # date feature
     year_col = encode_year(df['contract_date'])
@@ -107,14 +107,18 @@ def load_data():
             encoded_x = np.concatenate((encoded_x, col), axis=1)
 
 
-    y = np.array(df['price'])
-    print("X shape: : ", encoded_x.shape)
-    print("y shape: : ", y.shape)
-    return encoded_x, y
+    if has_y:
+        y = np.array(df['price'])
+        print("X train shape: : ", encoded_x.shape)
+        print("y train shape: : ", y.shape)
+        return encoded_x, y
+    else:
+        print("X test shape: : ", encoded_x.shape)
+        return encoded_x
 
 
 if __name__ == '__main__':
-    X, y = load_data()
+    X, y = load_data("./data/private_train.csv")
 
     rng = np.random.RandomState(31337)
 

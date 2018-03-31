@@ -1,0 +1,6 @@
+.DS_Store
+.idea/
+*.pdf
+*.csv
+data/
+__pycache__/

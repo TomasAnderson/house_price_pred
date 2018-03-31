@@ -20,6 +20,20 @@ def encode_category(col, one_hot=True):
         enc_col = enc.fit_transform(enc_col)
     return np.array(enc_col)
 
+def encode_model(col):
+    models = ['DBSS', 'MULTI GENERATION', 'MODEL A2', 'PREMIUM MAISONETTE', 'SIMPLIFIED',
+              'PREMIUM APARTMENT LOFT', 'TERRACE', 'STANDARD', 'IMPROVED', 'MAISONETTE',
+              'MODEL A', 'PREMIUM APARTMENT', 'ADJOINED FLAT', 'IMPROVED-MAISONETTE', 'TYPE S1',
+              'TYPE S2', '2-ROOM', 'MODEL A-MAISONETTE', 'APARTMENT', 'NEW GENERATION']
+
+    le = LabelEncoder().fit(models)
+    enc_col = le.transform(col)
+    enc = OneHotEncoder(sparse=False, n_values=len(models))
+    enc_col = np.array(enc_col).reshape(-1, 1)
+    enc_col = enc.fit_transform(enc_col)
+    return np.array(enc_col)
+
+
 def encode_month(col):
     year_col, mon_col = [], []
     for c in col:
@@ -38,11 +52,12 @@ def encode_range(col):
 def encode_num(col):
     return np.array(col).reshape((len(col), 1))
 
-def load_data():
-    df = pd.read_csv("./data/hdb_train.csv")
+def load_data(f, has_y=True):
+    df = pd.read_csv(f)
 
     # categorical feature
-    model_col = encode_category(df['flat_model'])
+
+    model_col = encode_model(df['flat_model'])
     type_col = encode_category(df['flat_type'])
 
     # range feature
@@ -66,18 +81,24 @@ def load_data():
     encoded_x = None
 
     for i, col in enumerate([model_col, type_col, area_col, year_col, floor_col, lat_col, lon_col, storey_col, lease_commence_col, postal_col]):
+        print(i, col.shape)
         if encoded_x is None:
             encoded_x = col
         else:
             encoded_x = np.concatenate((encoded_x, col), axis=1)
 
-    y = np.array(df['resale_price'])
-    print("X shape: : ", encoded_x.shape)
-    print("y shape: : ", y.shape)
-    return encoded_x, y
+
+    if has_y:
+        y = np.array(df['resale_price'])
+        print("X train shape: : ", encoded_x.shape)
+        print("y train shape: : ", y.shape)
+        return encoded_x, y
+    else:
+        print("X test shape: : ", encoded_x.shape)
+        return encoded_x
 
 if __name__ == '__main__':
-    X, y = load_data()
+    X, y = load_data("./data/hdb_train.csv")
     rng = np.random.RandomState(31337)
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=31337)
