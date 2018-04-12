@@ -3,6 +3,8 @@ import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+
 from sklearn.metrics import mean_squared_error
 
 def mean_absolute_percentage_error(y_true, y_pred):
@@ -103,7 +105,9 @@ if __name__ == '__main__':
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=31337)
 
-    model = xgb.XGBRegressor()
+    # model = xgb.XGBRegressor()
+    model = RandomForestRegressor()
+
     model.fit(X_train, y_train)
     print(model)
 
@@ -112,4 +116,4 @@ if __name__ == '__main__':
 
     # evaluate predictions
     mse = mean_absolute_percentage_error(y_test, predictions)
-    print("MSE: %.2f" % (mse))
+    print("MAPE: %.2f" % (mse))

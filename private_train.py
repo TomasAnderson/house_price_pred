@@ -2,6 +2,7 @@ import pandas as pd
 import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 
 def mean_absolute_percentage_error(y_true, y_pred):
@@ -76,7 +77,7 @@ def load_data(f, has_y=True):
     property_col = encode_category(df['property_type'], n=6)
     completion_date_col = encode_completion_date(df['completion_date'], n=4)
     sale_type_col = encode_category(df['type_of_sale'], n=3)
-    tenure_col = encode_binary(df['tenure'], w='Freehold')     # is tenure
+    # tenure_col = encode_binary(df['tenure'], w='Freehold')     # is tenure
     postal_district_col = encode_category(df['postal_district'], n=27)
     region_col = encode_category(df['region'], n=5)
     area_col = encode_category(df['area'], n=40)
@@ -94,7 +95,7 @@ def load_data(f, has_y=True):
 
     # block_col = encode_category(df['project_name']) # dim = 3523
     # street_col = encode_category(df['street_name']) # dim =311913
-    # tenure_col = encode_category(df['tenure']) # dim = 850
+    tenure_col = encode_category(df['tenure'], n=850) # dim = 850
     # unit_col
 
     encoded_x = None
@@ -124,7 +125,8 @@ if __name__ == '__main__':
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=31337)
 
-    model = xgb.XGBRegressor()
+    # model = xgb.XGBRegressor()
+    model = RandomForestRegressor()
     model.fit(X_train, y_train)
     print(model)
 
@@ -133,4 +135,4 @@ if __name__ == '__main__':
 
     # evaluate predictions
     mse = mean_absolute_percentage_error(y_test, predictions)
-    print("MSE: %.2f" % (mse))
+    print("MAPE: %.2f" % (mse))
